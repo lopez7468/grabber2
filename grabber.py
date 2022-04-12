@@ -48,7 +48,8 @@ def error(err_string):
 def light_on(duty):
     PWM_OBJ = (2**(16 * duty/100))
     light_pwm.duty_u16(int(PWM_OBJ))
-       
+
+#checks if object within 4cm then turns ion gp0
 def move():
     gp0.off() 
     distance = sensor.distance_cm()
@@ -57,7 +58,7 @@ def move():
         print('test')
     print(distance)
             
-            
+ 
             
     
         

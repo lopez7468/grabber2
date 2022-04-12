@@ -1,3 +1,4 @@
+#tests color sendor
 # More details can be found in TechToTinker.blogspot.com 
 # George Bantique | tech.to.tinker@gmail.com
 
@@ -17,15 +18,17 @@ tcs = TCS34725(i2c_bus)
 # # 2. To print the RGB data:
 #print('rgb: {}'.format(tcs.read('rgb')))
 # #
-# # 3. To print the RGB data in decimal form:
+# # 3. To print the RGB data in decimal form: doesnt work
 #print('dec: {}'.format(tcs.read('dec')))
 # #
-# # 4. To print the RGB data in hex form:
+# # 4. To print the RGB data in hex form: doesnt work
 #print(tcs.read('hex'))
 # #
 # # 5. To print the color temperature in ^Kelvin and
 # #    the luminosity in lux
 # print('lux: {}'.format(tcs.read('lux')))
-bruh = TCS34725.html_rgb(tcs.read('raw'))
-print(bruh)
+rgb = TCS34725.html_rgb(tcs.read('raw'))
+print(rgb)
 #r, g, b = TCS34725.html_rgb(tcs.read('raw'))
+
+

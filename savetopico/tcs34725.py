@@ -1,3 +1,5 @@
+#library for color sensor
+
 import time
 import ustruct
 

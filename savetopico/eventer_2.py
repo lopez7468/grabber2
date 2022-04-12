@@ -6,7 +6,8 @@
 #     Event.TIMER for a single timer.
 #
 # Written by Eric B. Wertz (eric@edushields.com)
-# Last modified 18-Feb-2022 21:00
+#edited by Antonio to work with our project
+
 
 import micropython, machine
 from machine import Pin, Timer
@@ -73,8 +74,9 @@ class Eventer:
         self.button22.irq(trigger=Pin.IRQ_FALLING, handler=self._isr_button22, hard=False)\
         
         #Event source : Utrasonic Sensor getting too close 
-        self.gp0 = Pin(0, Pin.IN)        # already pulled-up by resistors on baseboard
+        self.gp0 = Pin(0, Pin.IN)        # starts as off
         self.gp0.irq(trigger=Pin.IRQ_RISING, handler=self._isr_gp0, hard=False)
+        #uses gp0 turning on to trigger event
         
     def _isr_gp0(self, pin):
         mask = machine.disable_irq()
