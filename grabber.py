@@ -16,11 +16,14 @@ PIN_LIGHT = const(16)   # LED nearest BUTTON_GP20
 
 # States of the state machine
 STATE_OFF = 0
-STATE_MOVE_TOWARDS = 1
-STATE_GRAB = 2
-STATE_MOVE_BACK = 3
+STATE_SEARCH = 1
+STATE_MOVE_TOWARDS = 2
+STATE_CHECK_COLOR = 3
+STATE_MOVE_TOWARDS_NEXT = 4
+STATE_GRAB = 5
+STATE_MOVE_BACK = 6
 
-STATE_STR = ('STATE_OFF', 'STATE_MOVE_TOWARDS', 'STATE_GRAB', 'STATE_MOVE_BACK')
+STATE_STR = ('STATE_OFF', 'STATE_SEARCH', 'STATE_MOVE_TOWARDS', 'STATE_CHECK_COLOR', 'STATE_MOVE_TOWARDS_NEXT', 'STATE_GRAB', 'STATE_MOVE_BACK')
 
 #Pin Vaiable
 light = Pin(PIN_LIGHT)
@@ -67,6 +70,8 @@ def move():
 #   return the next state.  The cross-product of all states and events should
 #   be completely covered, and unanticipated combinations should result in a
 #   warning/error, as that often indicates a consequential bug in the state machine.
+
+#states with no functions move to next state automatically
 def event_process(state, event):
     global duty_powerdown
     if state == STATE_OFF:
@@ -74,10 +79,22 @@ def event_process(state, event):
             if event == Event.PRESS:
                 eventer.timer_set(1000, periodic=False)
                 move()
-                return STATE_MOVE_TOWARDS
+                return STATE_SEARCH
             
             else:
                 error("Unrecognized event in STATE_OFF")
+                
+    elif state == STATE_SEARCH:
+            return STATE_MOVE_TOWARDS
+        
+            if event == Event.PRESS:
+                return STATE_OFF
+            
+            #search function and event
+            
+            
+            else:
+                error("Unrecognized event in STATE_ON")
                 
     elif state == STATE_MOVE_TOWARDS:
             
@@ -98,15 +115,31 @@ def event_process(state, event):
             else:
                 error("Unrecognized event in STATE_ON")
                 
-    elif state == STATE_GRAB:
+    elif state == STATE_CHECK_COLOR:
+            return STATE_MOVE_TOWARDS_NEXT
             if event == Event.PRESS:
                 return STATE_OFF
-            
+            #check color function
+            #yes or no event
             
             else:
                 error("Unrecognized event in STATE_ON")
-    
-    
+    elif state == STATE_GRAB:
+            return STATE_MOVE_BACK
+            if event == Event.PRESS:
+                return STATE_OFF
+            #grab function
+            
+            else:
+                error("Unrecognized event in STATE_ON")
+    elif state == STATE_MOVE_BACK:
+            return STATE_OFF
+            if event == Event.PRESS:
+                return STATE_OFF
+            #move back function
+            
+            else:
+                error("Unrecognized event in STATE_ON")
 
 # INITIAL CONDITIONS SETUP
 gp0.off()
