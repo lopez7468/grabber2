@@ -25,18 +25,8 @@ STATE_MOVE_BACK = 6
 
 STATE_STR = ('STATE_OFF', 'STATE_SEARCH', 'STATE_MOVE_TOWARDS', 'STATE_CHECK_COLOR', 'STATE_MOVE_TOWARDS_NEXT', 'STATE_GRAB', 'STATE_MOVE_BACK')
 
-#Pin Vaiable
-light = Pin(PIN_LIGHT)
-light_pwm = PWM(light)
 
-#PWm variable
-MAX_POWER_OF_2 = const(16)
-light_pwm.freq(1000)
 
-#variables to decide powerlevel
-DUTY_MAX = const(100)
-DUTY_DECR = const( 10) # duty decrement every POWERDOWN_DECR_MSECS
-DUTY_MIN = const( 0)
 
 #Utrasonic variables
 sensor = HCSR04(trigger_pin=17, echo_pin=16)
@@ -47,10 +37,6 @@ gp0 = Pin(0, Pin.OUT)
 def error(err_string):
     raise Exception(err_string)
 
-
-def light_on(duty):
-    PWM_OBJ = (2**(16 * duty/100))
-    light_pwm.duty_u16(int(PWM_OBJ))
 
 #checks if object within 4cm then turns ion gp0
 def move():
@@ -76,7 +62,7 @@ def event_process(state, event):
     global duty_powerdown
     if state == STATE_OFF:
         
-            if event == Event.PRESS:
+            if event == Event.ON_PRESS:
                 eventer.timer_set(1000, periodic=False)
                 move()
                 return STATE_SEARCH
@@ -87,7 +73,7 @@ def event_process(state, event):
     elif state == STATE_SEARCH:
             return STATE_MOVE_TOWARDS
         
-            if event == Event.PRESS:
+            if event == Event.ON_PRESS:
                 return STATE_OFF
             
             #search function and event
@@ -98,7 +84,7 @@ def event_process(state, event):
                 
     elif state == STATE_MOVE_TOWARDS:
             
-            if event == Event.PRESS:
+            if event == Event.ON_PRESS:
                 eventer.timer_cancel()
                 return STATE_OFF
             
@@ -117,7 +103,7 @@ def event_process(state, event):
                 
     elif state == STATE_CHECK_COLOR:
             return STATE_MOVE_TOWARDS_NEXT
-            if event == Event.PRESS:
+            if event == Event.ON_PRESS:
                 return STATE_OFF
             #check color function
             #yes or no event
@@ -126,7 +112,7 @@ def event_process(state, event):
                 error("Unrecognized event in STATE_ON")
     elif state == STATE_GRAB:
             return STATE_MOVE_BACK
-            if event == Event.PRESS:
+            if event == Event.ON_PRESS:
                 return STATE_OFF
             #grab function
             
@@ -134,7 +120,7 @@ def event_process(state, event):
                 error("Unrecognized event in STATE_ON")
     elif state == STATE_MOVE_BACK:
             return STATE_OFF
-            if event == Event.PRESS:
+            if event == Event.ON_PRESS:
                 return STATE_OFF
             #move back function
             

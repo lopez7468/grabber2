@@ -6,11 +6,11 @@
 #     Event.TIMER for a single timer.
 #
 # Written by Eric B. Wertz (eric@edushields.com)
-#edited by Antonio to work with our project
-
+# Last modified 18-Feb-2022 21:00
 
 import micropython, machine
 from machine import Pin, Timer
+import hcsr04
 
 micropython.alloc_emergency_exception_buf(100)
 
@@ -20,23 +20,23 @@ class Event():
     """No event occurred since last retrieval"""
     NONE  = const(0)
 
-    """(The) button press occurred"""
-    PRESS = const(1)
+    """On button press occurred"""
+    ON_PRESS = const(1)
 
     """(The) timer expired"""
     TIMER = const(2)
     
-    """(The) button gp21 press occurred"""
-    PRESS21 = const(3)
+    """The yes button (gp21) press occurred"""
+    YES_PRESS = const(3)
 
-    """(The) button gp22 press occurred"""
-    PRESS22 = const(4)
+    """The no button (gp22) press occurred"""
+    NO_PRESS = const(4)
     
-    """(The) button gp22 press occurred"""
-    TOOCLOSE = const(4)
+    """utrasonic sensor got too close"""
+    TOOCLOSE = const(5)
     
     def to_string(n):
-        return ('NONE', 'PRESS', 'TIMER', 'PRESS21', 'PRESS22', 'TOOCLOSE')[n]
+        return ('NONE', 'ON_PRESS', 'TIMER', 'YES_PRESS', 'NO_PRESS', 'TOOCLOSE')[n]
 
 class TimerInUseException(Exception):
     pass
@@ -69,33 +69,33 @@ class Eventer:
         self.button21 = Pin(PIN21, Pin.IN)        # already pulled-up by resistors on baseboard
         self.button21.irq(trigger=Pin.IRQ_FALLING, handler=self._isr_button21, hard=False)
         
-        #Event source : button in PIN21
+        #Event source : button in PIN22
         self.button22 = Pin(PIN22, Pin.IN)        # already pulled-up by resistors on baseboard
-        self.button22.irq(trigger=Pin.IRQ_FALLING, handler=self._isr_button22, hard=False)\
+        self.button22.irq(trigger=Pin.IRQ_FALLING, handler=self._isr_button22, hard=False)
         
         #Event source : Utrasonic Sensor getting too close 
-        self.gp0 = Pin(0, Pin.IN)        # starts as off
+        self.gp0 = Pin(0, Pin.OUT)        # already pulled-up by resistors on baseboard
         self.gp0.irq(trigger=Pin.IRQ_RISING, handler=self._isr_gp0, hard=False)
-        #uses gp0 turning on to trigger event
+        
         
     def _isr_gp0(self, pin):
         mask = machine.disable_irq()
-        self.queue.append(Event.gp0)
+        self.queue.append(Event.TOOCLOSE)
         machine.enable_irq(mask)
         
     def _isr_button22(self, pin):
         mask = machine.disable_irq()
-        self.queue.append(Event.PRESS22)
+        self.queue.append(Event.NO_PRESS)
         machine.enable_irq(mask)
         
     def _isr_button21(self, pin):
         mask = machine.disable_irq()
-        self.queue.append(Event.PRESS21)
+        self.queue.append(Event.YES_PRESS)
         machine.enable_irq(mask)
 
     def _isr_button(self, pin):
         mask = machine.disable_irq()
-        self.queue.append(Event.PRESS)
+        self.queue.append(Event.ON_PRESS)
         machine.enable_irq(mask)
 
     def _isr_timer(self, tmr):
