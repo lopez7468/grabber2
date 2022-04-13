@@ -1,12 +1,9 @@
 # The Eventer class encapsulates all of the event checking and systhesis,
 #    away from the state machine implementation code.
 #
-# NB: This Eventer version was designed specifically for flashlight1+blinking.py.
-#     The only events that it produces are Event.PRESS for PIN_BUTTON (GP20) and
-#     Event.TIMER for a single timer.
 #
 # Written by Eric B. Wertz (eric@edushields.com)
-# Last modified 18-Feb-2022 21:00
+# edited by Antonio to work with our project
 
 import micropython, machine
 from machine import Pin, Timer
