@@ -2,6 +2,7 @@
 from hcsr04 import HCSR04
 from machine import Pin, PWM
 import time
+from coloroutput import readcolor
 
 USE_POLLING_EVENTER = False
 
@@ -86,7 +87,8 @@ def event_process(state, event):
             
             if event == Event.ON_PRESS:
                 eventer.timer_cancel()
-                return STATE_OFF
+                readcolor()
+                return STATE_CHECK_COLOR#fix
             
             if event == Event.TIMER:
                 eventer.timer_set(500, periodic=False)
@@ -95,16 +97,25 @@ def event_process(state, event):
             
             if event  == Event.TOOCLOSE:
                 eventer.timer_cancel()
-                return STATE_OFF
+                readcolor()
+                return STATE_CHECK_COLOR
             
             
             else:
                 error("Unrecognized event in STATE_ON")
                 
     elif state == STATE_CHECK_COLOR:
-            return STATE_MOVE_TOWARDS_NEXT
+            
             if event == Event.ON_PRESS:
                 return STATE_OFF
+            
+            if event == Event.YES_PRESS:
+                return STATE_GRAB
+            
+            if event == Event.NO_PRESS:
+                print('fix this')
+                return STATE_GRAB
+            
             #check color function
             #yes or no event
             
