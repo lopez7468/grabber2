@@ -6,7 +6,7 @@ from time    import sleep
 
 from hcsr04 import HCSR04
 
-# sensor = HCSR04(trigger_pin=17, echo_pin=16)
+sensor = HCSR04(trigger_pin=17, echo_pin=16)
 
 
 
@@ -15,7 +15,8 @@ from hcsr04 import HCSR04
 
 PIN_SERVO = const(22)       	# GP22 for servo control signal
 
-FREQ_SERVO = const(50)      	# 20ms period
+FREQ_SERVO = const(50)      	# 20ms
+
 servoPin = PWM(Pin(PIN_SERVO))
 servoPin.freq(FREQ_SERVO)
 
@@ -29,9 +30,9 @@ def servo(degrees):
     newDuty=minDuty+(maxDuty-minDuty)*(degrees/180)
 
     servoPin.duty_u16(int(newDuty))
-"""
+
 while True:
-    
+    """
     for degree in range(0,180,1):
         if sensor.distance_cm() > 4:
             servo(degree)
@@ -46,13 +47,28 @@ while True:
             sleep(0.001)
             print("decreasing -- "+str(degree))
             print(sensor.distance_cm())
-    
-  """
-while True:
-    
-    for degree in range(180, 0, -1):
-        servo(degree)
-        sleep(0.1)
-    for degree in range(180, 0, 1):
-        servo(degree)
-        sleep(0.1)
+    """
+    for i in range(80):
+        distance = sensor.distance_cm()
+        print(distance)
+        servo(i)
+        sleep(0.05)
+        sweep = i
+        if distance < 50:
+            
+            sleep(0.5)
+            print("done first")
+            sleep(5)
+            break
+    for i in range(sweep, 80):
+        distance = sensor.distance_cm()
+        servo(i)
+        sleep(0.05)
+        sweep = i
+        if distance < 50:
+            
+            sleep(0.5)
+            print("done first")
+            break
+    sleep(5)
+        
