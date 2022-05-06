@@ -51,6 +51,15 @@ FREQ_SERVO = const(50)      	# 20ms
 servoPin = PWM(Pin(PIN_SERVO))
 servoPin.freq(FREQ_SERVO)
 
+#servo2 variables
+"""
+PIN_SERVO = const(22)       	# GP22 for servo control signal
+
+FREQ_SERVO = const(50)      	# 20ms
+
+servoPin = PWM(Pin(PIN_SERVO))
+servoPin.freq(FREQ_SERVO)
+"""
 
 #checks if object within 4cm then turns ion gp0
 def servo(degrees):
@@ -107,9 +116,29 @@ def search(degree):
         gp0.value(1)    
         sleep(0.5)
         print("done first")
-            
-    
         
+def servo2(close):           
+    if degrees > 180: degrees=180
+    if degrees < 0: degrees=0
+    
+    maxDuty=9000
+    minDuty=1000
+
+    newDuty=minDuty+(maxDuty-minDuty)*(degrees/180)
+
+    servoPin.duty_u16(int(newDuty))def servo(degrees):
+    if degrees > 180: degrees=180
+    if degrees < 0: degrees=0
+    
+    maxDuty=9000
+    minDuty=1000
+
+    newDuty=minDuty+(maxDuty-minDuty)*(degrees/180)
+    #add second servo
+    servoPin.duty_u16(int(newDuty))
+    
+def close_claw()
+    servo2()#add number
 
 # Take the current state and the next event, perform the appropriate action(s) and
 #   return the next state.  The cross-product of all states and events should
