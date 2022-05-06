@@ -1,6 +1,7 @@
 # grabber.py
 from hcsr04 import HCSR04
 from machine import Pin, PWM
+from time import sleep_us, sleep
 import time
 from coloroutput import readcolor
 
@@ -26,8 +27,12 @@ STATE_MOVE_BACK = 6
 
 STATE_STR = ('STATE_OFF', 'STATE_SEARCH', 'STATE_MOVE_TOWARDS', 'STATE_CHECK_COLOR', 'STATE_MOVE_TOWARDS_NEXT', 'STATE_GRAB', 'STATE_MOVE_BACK')
 
+#stepper variables
+dir1 = Pin(19, Pin.OUT)
+step = Pin(18, Pin.OUT)
 
-
+delay_usecs = 1000
+STEPS_PER_REV = 200
 
 #Utrasonic variables
 sensor = HCSR04(trigger_pin=17, echo_pin=16)
@@ -38,17 +43,70 @@ gp0 = Pin(0, Pin.OUT)
 def error(err_string):
     raise Exception(err_string)
 
+#servo variables
+PIN_SERVO = const(22)       	# GP22 for servo control signal
+
+FREQ_SERVO = const(50)      	# 20ms
+
+servoPin = PWM(Pin(PIN_SERVO))
+servoPin.freq(FREQ_SERVO)
+
 
 #checks if object within 4cm then turns ion gp0
+def servo(degrees):
+    if degrees > 180: degrees=180
+    if degrees < 0: degrees=0
+    
+    maxDuty=9000
+    minDuty=1000
+
+    newDuty=minDuty+(maxDuty-minDuty)*(degrees/180)
+
+    servoPin.duty_u16(int(newDuty))def servo(degrees):
+    if degrees > 180: degrees=180
+    if degrees < 0: degrees=0
+    
+    maxDuty=9000
+    minDuty=1000
+
+    newDuty=minDuty+(maxDuty-minDuty)*(degrees/180)
+
+    servoPin.duty_u16(int(newDuty))
+    
 def move():
-    gp0.off() 
+    gp0.off()
+    
+    step.on()
+    sleep_us(delay_usecs)
+    step.off()
+    sleep_us(delay_usecs)
+    
     distance = sensor.distance_cm()
     if distance <= 4:
         gp0.value(1)
         print('test')
     print(distance)
-            
+   
+def moveback(stepcount):
+    dir1.on()
+    for i in range(stepcount):
+        step.on()
+        sleep_us(delay_usecs)
+        step.off()
+        sleep_us(delay_usecs)
+    dir1.off()
  
+def search(degree):
+    gp0.off()
+    distance = sensor.distance_cm()
+    print(distance)
+    servo(i)
+    sleep(0.05)
+    sweep = i
+    if distance < 50:
+        gp0.value(1)    
+        sleep(0.5)
+        print("done first")
             
     
         
@@ -65,14 +123,19 @@ def event_process(state, event):
         
             if event == Event.ON_PRESS:
                 eventer.timer_set(1000, periodic=False)
-                move()
+                global deg = 0
                 return STATE_SEARCH
             
             else:
                 error("Unrecognized event in STATE_OFF")
                 
     elif state == STATE_SEARCH:
-            return STATE_MOVE_TOWARDS
+        
+            if event == Event.Event.TIMER:
+                search()
+                deg = deg + 1
+                eventer.timer_set(1000, periodic=False)
+                return STATE_MOVE_TOWARDS
         
             if event == Event.ON_PRESS:
                 return STATE_OFF
@@ -84,7 +147,7 @@ def event_process(state, event):
                 error("Unrecognized event in STATE_ON")
                 
     elif state == STATE_MOVE_TOWARDS:
-            
+            global stepcount = 0
             if event == Event.ON_PRESS:
                 eventer.timer_cancel()
                 readcolor()
@@ -93,6 +156,7 @@ def event_process(state, event):
             if event == Event.TIMER:
                 eventer.timer_set(500, periodic=False)
                 move()
+                stepcount = stepcount + 1
                 return STATE_MOVE_TOWARDS
             
             if event  == Event.TOOCLOSE:
