@@ -2,10 +2,10 @@ from machine import Pin
 from time import sleep_us, sleep
 from hcsr04 import HCSR04
 
-dir1 = Pin(19, Pin.OUT)
-step = Pin(18, Pin.OUT)
+dir1 = Pin(11, Pin.OUT)
+step = Pin(10, Pin.OUT)
 
-STEPDELAY_USECS = 1000
+c = 1000
 STEPS_PER_REV = 200
 
 sensor = HCSR04(trigger_pin=17, echo_pin=16)
@@ -30,7 +30,7 @@ def move():
 step_count = 0
     
 def steps(delay_usecs):
-    
+    dir1.off()
     step.on()
     sleep_us(delay_usecs)
     step.off()
@@ -49,7 +49,7 @@ def go_back(step_count, delay_usecs):
 
 # example usage
 while True:
-    distance = sensor.distance_cm()
+   """ distance = sensor.distance_cm()
     if distance > 4:
         print(sensor.distance_cm())
         print(step_count)
@@ -60,5 +60,10 @@ while True:
         print(step_count)
         go_back(step_count, STEPDELAY_USECS)
         break
+"""
 
+   for i in range(50):
+       
+       go_back(1000, 1000)
+       sleep(0.005)
 

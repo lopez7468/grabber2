@@ -70,7 +70,8 @@ class Eventer:
         self.button22 = Pin(PIN22, Pin.IN)        # already pulled-up by resistors on baseboard
         self.button22.irq(trigger=Pin.IRQ_FALLING, handler=self._isr_button22, hard=False)
         
-        #Event source : Utrasonic Sensor getting too close 
+        #Event source : Utrasonic Sensor getting too close
+        #and also triggers when ultrasonic sensor detects something in its sweep
         self.gp0 = Pin(0, Pin.OUT)        # already pulled-up by resistors on baseboard
         self.gp0.irq(trigger=Pin.IRQ_RISING, handler=self._isr_gp0, hard=False)
         

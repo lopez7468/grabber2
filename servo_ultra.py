@@ -13,7 +13,7 @@ sensor = HCSR04(trigger_pin=17, echo_pin=16)
 
 
 
-PIN_SERVO = const(22)       	# GP22 for servo control signal
+PIN_SERVO = const(26)       	# GP22 for servo control signal
 
 FREQ_SERVO = const(50)      	# 20ms
 
@@ -32,7 +32,7 @@ def servo(degrees):
     servoPin.duty_u16(int(newDuty))
 
 while True:
-    """
+    
     for degree in range(0,180,1):
         if sensor.distance_cm() > 4:
             servo(degree)
@@ -71,4 +71,14 @@ while True:
             print("done first")
             break
     sleep(5)
+   """
+    """
+    for i in range(80):
+        servo(i)
+        sleep(0.05)
         
+    for i in range(80, 0, -1):
+        servo(i)
+        sleep(0.05)
+    """
+  

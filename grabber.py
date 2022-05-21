@@ -1,4 +1,6 @@
 # grabber.py
+
+
 from hcsr04 import HCSR04
 from machine import Pin, PWM
 from time import sleep_us, sleep
@@ -28,8 +30,8 @@ STATE_MOVE_BACK = 6
 STATE_STR = ('STATE_OFF', 'STATE_SEARCH', 'STATE_MOVE_TOWARDS', 'STATE_CHECK_COLOR', 'STATE_MOVE_TOWARDS_NEXT', 'STATE_GRAB', 'STATE_MOVE_BACK')
 
 #stepper variables
-dir1 = Pin(19, Pin.OUT)
-step = Pin(18, Pin.OUT)
+dir1 = Pin(11, Pin.OUT)
+step = Pin(10, Pin.OUT)
 
 delay_usecs = 1000
 STEPS_PER_REV = 200
@@ -44,15 +46,17 @@ def error(err_string):
     raise Exception(err_string)
 
 #servo variables
-PIN_SERVO = const(22)       	# GP22 for servo control signal
+PIN_SERVO = const(26)       	# GP26 for servo control signal
 
-FREQ_SERVO = const(50)      	# 20ms
+FREQ_SERVO = const(50)      	# 50ms
 
 servoPin = PWM(Pin(PIN_SERVO))
 servoPin.freq(FREQ_SERVO)
 
 #servo2 variables
 """
+this was meant for the servo to close the claw
+
 PIN_SERVO = const(22)       	# GP22 for servo control signal
 
 FREQ_SERVO = const(50)      	# 20ms
@@ -61,17 +65,9 @@ servoPin = PWM(Pin(PIN_SERVO))
 servoPin.freq(FREQ_SERVO)
 """
 
-#checks if object within 4cm then turns ion gp0
+#moves servo to set degree
 def servo(degrees):
-    if degrees > 180: degrees=180
-    if degrees < 0: degrees=0
-    
-    maxDuty=9000
-    minDuty=1000
 
-    newDuty=minDuty+(maxDuty-minDuty)*(degrees/180)
-
-    servoPin.duty_u16(int(newDuty))def servo(degrees):
     if degrees > 180: degrees=180
     if degrees < 0: degrees=0
     
@@ -82,6 +78,7 @@ def servo(degrees):
 
     servoPin.duty_u16(int(newDuty))
     
+    # moves the claw forward one step with the stepper motor and checks if something is within 4 cm
 def move():
     gp0.off()
     
@@ -96,22 +93,28 @@ def move():
         print('test')
     print(distance)
    
-def moveback(stepcount):
+#moves claw back the amount of steps it moved forward
+def moveback(step_count):
     dir1.on()
+    print('moving back')
     for i in range(stepcount):
         step.on()
         sleep_us(delay_usecs)
         step.off()
         sleep_us(delay_usecs)
+        sleep(0.05)
     dir1.off()
- 
+    
+    
+# moves servo and checks if there is something within 50cm
 def search(degree):
+    print('search')
     gp0.off()
     distance = sensor.distance_cm()
     print(distance)
-    servo(i)
+    servo(degree)
     sleep(0.05)
-    sweep = i
+    
     if distance < 50:
         gp0.value(1)    
         sleep(0.5)
@@ -126,18 +129,10 @@ def servo2(close):
 
     newDuty=minDuty+(maxDuty-minDuty)*(degrees/180)
 
-    servoPin.duty_u16(int(newDuty))def servo(degrees):
-    if degrees > 180: degrees=180
-    if degrees < 0: degrees=0
-    
-    maxDuty=9000
-    minDuty=1000
-
-    newDuty=minDuty+(maxDuty-minDuty)*(degrees/180)
-    #add second servo
     servoPin.duty_u16(int(newDuty))
     
-def close_claw()
+#would have closed the claw
+def close_claw():
     servo2()#add number
 
 # Take the current state and the next event, perform the appropriate action(s) and
@@ -148,11 +143,13 @@ def close_claw()
 #states with no functions move to next state automatically
 def event_process(state, event):
     global duty_powerdown
+    global deg
+    global stepcount
     if state == STATE_OFF:
         
             if event == Event.ON_PRESS:
                 eventer.timer_set(1000, periodic=False)
-                global deg = 0
+                deg = 0 
                 return STATE_SEARCH
             
             else:
@@ -160,15 +157,23 @@ def event_process(state, event):
                 
     elif state == STATE_SEARCH:
         
-            if event == Event.Event.TIMER:
-                search()
+            if event == Event.TIMER:
+                search(deg)
                 deg = deg + 1
-                eventer.timer_set(1000, periodic=False)
-                return STATE_MOVE_TOWARDS
+                eventer.timer_set(100, periodic=False)
+                
+                return STATE_SEARCH
         
             if event == Event.ON_PRESS:
                 return STATE_OFF
             
+            if event  == Event.TOOCLOSE:
+                eventer.timer_cancel()
+                stepcount = 0
+                print(deg)
+                move()
+                eventer.timer_set(50, periodic=False)
+                return STATE_MOVE_TOWARDS
             #search function and event
             
             
@@ -176,14 +181,14 @@ def event_process(state, event):
                 error("Unrecognized event in STATE_ON")
                 
     elif state == STATE_MOVE_TOWARDS:
-            global stepcount = 0
+            
             if event == Event.ON_PRESS:
                 eventer.timer_cancel()
                 readcolor()
                 return STATE_CHECK_COLOR#fix
             
             if event == Event.TIMER:
-                eventer.timer_set(500, periodic=False)
+                eventer.timer_set(50, periodic=False)
                 move()
                 stepcount = stepcount + 1
                 return STATE_MOVE_TOWARDS
@@ -203,7 +208,9 @@ def event_process(state, event):
                 return STATE_OFF
             
             if event == Event.YES_PRESS:
-                return STATE_GRAB
+                
+                moveback(stepcount)
+                return STATE_MOVE_BACK
             
             if event == Event.NO_PRESS:
                 print('fix this')
@@ -215,15 +222,17 @@ def event_process(state, event):
             else:
                 error("Unrecognized event in STATE_ON")
     elif state == STATE_GRAB:
-            return STATE_MOVE_BACK
+            
             if event == Event.ON_PRESS:
                 return STATE_OFF
             #grab function
             
+            
             else:
                 error("Unrecognized event in STATE_ON")
+                
     elif state == STATE_MOVE_BACK:
-            return STATE_OFF
+            
             if event == Event.ON_PRESS:
                 return STATE_OFF
             #move back function

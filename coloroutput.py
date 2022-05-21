@@ -25,6 +25,8 @@ PIXEL_NUM     = const(0)     #   and it's the 0th one
 neo = Neopixel(NUM_NEOPIXELS, SM_NEOPIXEL, PIN_NEOPIXEL, "GRB")
 
 PIN_DISP_SCL = const( 7)
+
+
 PIN_DISP_SDA = const( 6)
 
 I2C_CHANNEL = const(1)
@@ -42,7 +44,7 @@ def readcolor():
     
     rgb = TCS34725.html_rgb(tcs.read('raw'))
     print(rgb)
-    neo = Neopixel(1, 0, 28, "GRB")
+    #neo = Neopixel(1, 0, 28, "GRB")
 
     neo.brightness(250)
     neo.set_pixel(0, rgb)
@@ -51,4 +53,6 @@ def readcolor():
     oled.fill(0)                      # clear previous display buffer
     oled.text('  is this the ', 0, 16)
     oled.text('  right color?', 0, 32)
-    oled.show() 
+    oled.show()
+    
+readcolor()
